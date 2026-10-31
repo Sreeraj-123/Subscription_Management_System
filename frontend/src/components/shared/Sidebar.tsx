@@ -40,7 +40,7 @@ const defaultNavGroups: NavGroup[] = [
   {
     title: 'Subscription Ops',
     items: [
-      { label: 'Catalog & Plans', href: '/catalog', icon: Package },
+      { label: 'Catalog & Plans', href: '/catalog', icon: Package, roles: ['ADMIN', 'INTERNAL'] },
       { label: 'Subscriptions', href: '/subscriptions', icon: Repeat },
       { label: 'Invoices & Billing', href: '/invoices', icon: FileText },
     ],
@@ -49,7 +49,7 @@ const defaultNavGroups: NavGroup[] = [
     title: 'Finance',
     items: [
       { label: 'Payments', href: '/payments', icon: CreditCard },
-      { label: 'Reports & MRR', href: '/reports', icon: BarChart3 },
+      { label: 'Reports & MRR', href: '/reports', icon: BarChart3, roles: ['ADMIN', 'INTERNAL'] },
     ],
   },
   {
@@ -57,7 +57,7 @@ const defaultNavGroups: NavGroup[] = [
     items: [
       { label: 'Team Members', href: '/settings/team', icon: Users, roles: ['ADMIN'] },
       { label: 'Billing & Plans', href: '/settings/billing', icon: Layers },
-      { label: 'Workspace Settings', href: '/settings', icon: Settings },
+      { label: 'Workspace Settings', href: '/settings', icon: Settings, roles: ['ADMIN', 'INTERNAL'] },
     ],
   },
 ]

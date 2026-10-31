@@ -27,6 +27,9 @@ export interface Invoice {
   tax_amount: string
   discount_amount: string
   total_amount: string
+  paid_amount?: string | number
+  remaining_balance?: string | number
+  is_overdue?: boolean
   status: InvoiceStatus
   notes?: string
   lines: InvoiceLine[]
