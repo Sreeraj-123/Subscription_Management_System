@@ -13,12 +13,11 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const from = location.state?.from?.pathname || '/settings/billing'
+  const from = location.state?.from?.pathname || '/dashboard'
 
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -36,11 +35,6 @@ export const LoginPage: React.FC = () => {
     } catch (err: any) {
       setErrorMessage(err.message || 'Invalid email or password.')
     }
-  }
-
-  const fillQuickAccount = (email: string, pass: string) => {
-    setValue('email', email)
-    setValue('password', pass)
   }
 
   return (
@@ -125,29 +119,6 @@ export const LoginPage: React.FC = () => {
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
-
-          {/* Quick Demo Logins for Hackathon Team */}
-          <div className="mt-6 pt-5 border-t border-neutral-100">
-            <span className="block text-[10px] font-semibold tracking-wider text-neutral-400 uppercase text-center mb-2.5">
-              Quick Seed Logins (Hackathon)
-            </span>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => fillQuickAccount('admin@brightloop.io', 'Admin@123456')}
-                className="px-2.5 py-1 text-[11px] font-medium bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg transition"
-              >
-                Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => fillQuickAccount('staff1@brightloop.io', 'Staff@123456')}
-                className="px-2.5 py-1 text-[11px] font-medium bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg transition"
-              >
-                Staff
-              </button>
-            </div>
-          </div>
         </div>
 
         <div className="text-center mt-5 text-xs text-neutral-500">

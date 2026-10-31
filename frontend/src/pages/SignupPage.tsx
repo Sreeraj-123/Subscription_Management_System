@@ -41,7 +41,7 @@ export const SignupPage: React.FC = () => {
     try {
       setErrorMessage(null)
       await signup(data)
-      navigate('/settings/billing', { replace: true })
+      navigate('/dashboard', { replace: true })
     } catch (err: any) {
       setErrorMessage(err.message || 'Signup failed. Please try again.')
     }
