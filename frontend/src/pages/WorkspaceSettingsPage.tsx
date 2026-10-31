@@ -388,3 +388,4 @@ export const WorkspaceSettingsPage: React.FC = () => {
     </AppShell>
   )
 }
+
