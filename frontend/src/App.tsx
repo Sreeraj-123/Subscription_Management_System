@@ -7,6 +7,7 @@ import { SignupPage } from './pages/SignupPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { BillingPage } from './pages/BillingPage'
 import { TeamManagementPage } from './pages/TeamManagementPage'
+import { CatalogPage } from './pages/CatalogPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,7 +65,7 @@ export default function App() {
               path="/catalog"
               element={
                 <ProtectedRoute>
-                  <BillingPage />
+                  <CatalogPage />
                 </ProtectedRoute>
               }
             />
