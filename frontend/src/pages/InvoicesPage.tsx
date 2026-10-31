@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   AppShell,
@@ -16,6 +17,7 @@ import {
   Zap,
   CheckCircle2,
   X,
+  CreditCard,
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useAuth } from '@/context'
@@ -161,6 +163,15 @@ export const InvoicesPage: React.FC = () => {
           >
             <Download className="w-3.5 h-3.5" />
           </button>
+          {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
+            <Link
+              to="/payments"
+              className="p-1.5 text-neutral-400 hover:text-emerald-700 hover:bg-emerald-50 rounded transition"
+              title="Record / Make Payment"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+            </Link>
+          )}
           {currentUser?.role !== 'CUSTOMER' && (
             <button
               type="button"

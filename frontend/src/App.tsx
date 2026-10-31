@@ -10,6 +10,8 @@ import { TeamManagementPage } from './pages/TeamManagementPage'
 import { CatalogPage } from './pages/CatalogPage'
 import { SubscriptionsPage } from './pages/SubscriptionsPage'
 import { InvoicesPage } from './pages/InvoicesPage'
+import { PaymentsPage } from './pages/PaymentsPage'
+import { DashboardPage } from './pages/DashboardPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,7 +61,7 @@ export default function App() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <BillingPage />
+                  <DashboardPage />
                 </ProtectedRoute>
               }
             />
@@ -91,7 +93,7 @@ export default function App() {
               path="/payments"
               element={
                 <ProtectedRoute>
-                  <BillingPage />
+                  <PaymentsPage />
                 </ProtectedRoute>
               }
             />
@@ -99,13 +101,13 @@ export default function App() {
               path="/reports"
               element={
                 <ProtectedRoute>
-                  <BillingPage />
+                  <DashboardPage />
                 </ProtectedRoute>
               }
             />
 
-            <Route path="/" element={<Navigate to="/settings/billing" replace />} />
-            <Route path="*" element={<Navigate to="/settings/billing" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Router>
       </AuthProvider>

@@ -1,3 +1,6 @@
+from decimal import Decimal
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
@@ -40,6 +43,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         qs = (
             Invoice.objects.select_related('subscription__plan', 'customer')
             .prefetch_related('lines__product')
+            .annotate(annotated_paid_amount=Coalesce(Sum('payments__amount'), Decimal('0.00')))
             .all()
         )
         if not user.is_authenticated:
