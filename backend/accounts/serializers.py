@@ -161,3 +161,4 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         ComplexPasswordValidator().validate(value)
         validate_password(value)
         return value
+

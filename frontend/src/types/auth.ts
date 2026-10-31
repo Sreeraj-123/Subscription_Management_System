@@ -21,3 +21,4 @@ export interface AuthResponse {
   tokens: AuthTokens
   message?: string
 }
+

@@ -49,3 +49,4 @@ def confirm_password_reset(uidb64, token, new_password):
     user.set_password(new_password)
     user.save(update_fields=['password'])
     return user
+
