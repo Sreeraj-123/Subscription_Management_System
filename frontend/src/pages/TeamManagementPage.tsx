@@ -14,7 +14,7 @@ import { useAuth } from '@/context'
 import type { User } from '@/types/auth'
 
 export const TeamManagementPage: React.FC = () => {
-  const { user: currentUser } = useAuth()
+  const { user: currentUser, logout } = useAuth()
   const queryClient = useQueryClient()
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -28,11 +28,17 @@ export const TeamManagementPage: React.FC = () => {
     password: '',
   })
 
-  // Fetch team members
-  const { data: staffMembers = [], isLoading } = useQuery<User[]>({
+  // Fetch team members (handles both paginated { results: [...] } and raw array responses)
+  const { data: staffResponse, isLoading } = useQuery<any>({
     queryKey: ['staff-members'],
-    queryFn: () => api.get<User[]>('/accounts/staff/'),
+    queryFn: () => api.get<any>('/accounts/staff/'),
   })
+
+  const staffMembers: User[] = Array.isArray(staffResponse)
+    ? staffResponse
+    : Array.isArray(staffResponse?.results)
+      ? staffResponse.results
+      : []
 
   // Create staff mutation
   const inviteMutation = useMutation({
@@ -60,7 +66,7 @@ export const TeamManagementPage: React.FC = () => {
       cell: (member) => (
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-neutral-200 text-neutral-800 font-semibold text-xs shrink-0">
-            {(member.first_name || member.email).charAt(0).toUpperCase()}
+            {(member.first_name || member.email || '?').charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
             <p className="font-medium text-neutral-900 truncate">
@@ -93,7 +99,7 @@ export const TeamManagementPage: React.FC = () => {
       header: 'Created Date',
       cell: (member) => (
         <span className="text-neutral-500">
-          {new Date(member.created_at).toLocaleDateString()}
+          {member.created_at ? new Date(member.created_at).toLocaleDateString() : '—'}
         </span>
       ),
     },
@@ -101,9 +107,9 @@ export const TeamManagementPage: React.FC = () => {
 
   const filtered = staffMembers.filter(
     (m) =>
-      m.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (m.first_name && m.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (m.last_name && m.last_name.toLowerCase().includes(searchQuery.toLowerCase()))
+      (m?.email && m.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (m?.first_name && m.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (m?.last_name && m.last_name.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   const handleSubmitInvite = (e: React.FormEvent) => {
@@ -131,6 +137,7 @@ export const TeamManagementPage: React.FC = () => {
             }
           : undefined
       }
+      onLogout={logout}
     >
       <PageHeader
         breadcrumb="Settings > Team"
