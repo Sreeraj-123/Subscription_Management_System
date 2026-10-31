@@ -57,7 +57,7 @@ const defaultNavGroups: NavGroup[] = [
     items: [
       { label: 'Team Members', href: '/settings/team', icon: Users, roles: ['ADMIN'] },
       { label: 'Billing & Plans', href: '/settings/billing', icon: Layers },
-      { label: 'Workspace Settings', href: '/settings', icon: Settings, roles: ['ADMIN', 'INTERNAL'] },
+      { label: 'Workspace Settings', href: '/settings/workspace', icon: Settings, roles: ['ADMIN', 'INTERNAL'] },
     ],
   },
 ]
@@ -161,7 +161,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
               <div className="space-y-1">
                 {visibleItems.map((item) => {
-                  const isActive = location.pathname === item.href || (item.href !== '/' && location.pathname.startsWith(item.href))
+                  const isActive =
+                    location.pathname === item.href ||
+                    (item.href !== '/' && location.pathname.startsWith(`${item.href}/`))
                   const Icon = item.icon
 
                   return (
