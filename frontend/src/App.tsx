@@ -12,6 +12,7 @@ import { SubscriptionsPage } from './pages/SubscriptionsPage'
 import { InvoicesPage } from './pages/InvoicesPage'
 import { PaymentsPage } from './pages/PaymentsPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { WorkspaceSettingsPage } from './pages/WorkspaceSettingsPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +47,14 @@ export default function App() {
 
             {/* Protected SaaS App Routes */}
             <Route
+              path="/settings/workspace"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'INTERNAL']}>
+                  <WorkspaceSettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/settings/billing"
               element={
                 <ProtectedRoute>
@@ -55,7 +64,11 @@ export default function App() {
             />
             <Route
               path="/settings"
-              element={<Navigate to="/settings/billing" replace />}
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'INTERNAL']}>
+                  <WorkspaceSettingsPage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/dashboard"
