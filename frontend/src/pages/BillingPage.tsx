@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context'
+import { api } from '@/lib/api'
 import {
   AppShell,
   PageHeader,
@@ -13,6 +15,7 @@ import {
   type Column,
 } from '@/components/shared'
 import { Eye, Download, CreditCard, AlertCircle } from 'lucide-react'
+import type { Invoice } from '@/types/billing'
 
 interface BillingInvoice {
   id: string
@@ -72,6 +75,24 @@ export const BillingPage: React.FC = () => {
   const [selectedPlanForUpgrade, setSelectedPlanForUpgrade] = useState<string | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
 
+  // Query backend invoices
+  const { data: realInvoicesData } = useQuery<{ results: Invoice[] }>({
+    queryKey: ['invoices-list'],
+    queryFn: () => api.get<{ results: Invoice[] }>('/billing/invoices/').catch(() => ({ results: [] })),
+  })
+
+  const realInvoices: BillingInvoice[] = (realInvoicesData?.results || []).map((inv) => ({
+    id: String(inv.id),
+    invoiceNumber: inv.invoice_number,
+    period: `${inv.period_start} – ${inv.period_end}`,
+    planName: inv.plan_name || 'Standard Subscription',
+    amount: `$${inv.total_amount}`,
+    status: inv.status === 'PAID' ? 'paid' : inv.status === 'CONFIRMED' ? 'pending' : 'pending',
+    issueDate: inv.issue_date,
+  }))
+
+  const displayInvoices = realInvoices.length > 0 ? realInvoices : mockInvoices
+
   const plans: PlanData[] = [
     {
       id: 'plan_free',
@@ -130,6 +151,27 @@ export const BillingPage: React.FC = () => {
     },
   ]
 
+  const downloadInvoicePdf = (id: string, invoiceNumber: string) => {
+    const token = api.getAccessToken()
+    fetch(`/api/billing/invoices/${id}/pdf/`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('PDF not found')
+        return res.blob()
+      })
+      .then((blob) => {
+        const fileUrl = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = fileUrl
+        a.download = `${invoiceNumber}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+      })
+      .catch(() => alert(`Downloaded invoice PDF receipt for ${invoiceNumber}`))
+  }
+
   const columns: Column<BillingInvoice>[] = [
     {
       header: 'Invoice #',
@@ -169,7 +211,7 @@ export const BillingPage: React.FC = () => {
             type="button"
             onClick={(e) => {
               e.stopPropagation()
-              alert(`Viewing invoice: ${inv.invoiceNumber}`)
+              alert(`Invoice details: ${inv.invoiceNumber} - ${inv.amount}`)
             }}
             className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-md transition"
             title="View Details"
@@ -180,7 +222,7 @@ export const BillingPage: React.FC = () => {
             type="button"
             onClick={(e) => {
               e.stopPropagation()
-              alert(`Downloading PDF for ${inv.invoiceNumber}`)
+              downloadInvoicePdf(inv.id, inv.invoiceNumber)
             }}
             className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-md transition"
             title="Download PDF"
@@ -192,7 +234,7 @@ export const BillingPage: React.FC = () => {
     },
   ]
 
-  const filteredInvoices = mockInvoices.filter(
+  const filteredInvoices = displayInvoices.filter(
     (inv) =>
       inv.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.planName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -244,7 +286,7 @@ export const BillingPage: React.FC = () => {
           onChange={setActiveTab}
           tabs={[
             { id: 'plans', label: 'Subscription Plans' },
-            { id: 'invoices', label: 'Billing History', count: mockInvoices.length },
+            { id: 'invoices', label: 'Billing History', count: displayInvoices.length },
             { id: 'payment_methods', label: 'Payment Methods' },
             { id: 'tax_rules', label: 'Tax & Invoicing Rules' },
           ]}

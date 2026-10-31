@@ -8,6 +8,8 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { BillingPage } from './pages/BillingPage'
 import { TeamManagementPage } from './pages/TeamManagementPage'
 import { CatalogPage } from './pages/CatalogPage'
+import { SubscriptionsPage } from './pages/SubscriptionsPage'
+import { InvoicesPage } from './pages/InvoicesPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,7 +75,7 @@ export default function App() {
               path="/subscriptions"
               element={
                 <ProtectedRoute>
-                  <BillingPage />
+                  <SubscriptionsPage />
                 </ProtectedRoute>
               }
             />
@@ -81,7 +83,7 @@ export default function App() {
               path="/invoices"
               element={
                 <ProtectedRoute>
-                  <BillingPage />
+                  <InvoicesPage />
                 </ProtectedRoute>
               }
             />
