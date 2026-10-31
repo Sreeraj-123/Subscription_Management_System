@@ -1,6 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthProvider } from './context'
+import { ProtectedRoute } from './components/shared/ProtectedRoute'
+import { LoginPage } from './pages/LoginPage'
+import { SignupPage } from './pages/SignupPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { BillingPage } from './pages/BillingPage'
+import { TeamManagementPage } from './pages/TeamManagementPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,21 +20,92 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Navigate to="/settings/billing" replace />} />
-          <Route path="/settings/billing" element={<BillingPage />} />
-          <Route path="/settings" element={<BillingPage />} />
-          <Route path="/dashboard" element={<BillingPage />} />
-          <Route path="/catalog" element={<BillingPage />} />
-          <Route path="/subscriptions" element={<BillingPage />} />
-          <Route path="/invoices" element={<BillingPage />} />
-          <Route path="/payments" element={<BillingPage />} />
-          <Route path="/reports" element={<BillingPage />} />
-          <Route path="/settings/team" element={<BillingPage />} />
-          <Route path="*" element={<Navigate to="/settings/billing" replace />} />
-        </Routes>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Public Auth Routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ForgotPasswordPage />} />
+
+            {/* Role Protected Admin Routes */}
+            <Route
+              path="/settings/team"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <TeamManagementPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected SaaS App Routes */}
+            <Route
+              path="/settings/billing"
+              element={
+                <ProtectedRoute>
+                  <BillingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={<Navigate to="/settings/billing" replace />}
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <BillingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/catalog"
+              element={
+                <ProtectedRoute>
+                  <BillingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/subscriptions"
+              element={
+                <ProtectedRoute>
+                  <BillingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices"
+              element={
+                <ProtectedRoute>
+                  <BillingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payments"
+              element={
+                <ProtectedRoute>
+                  <BillingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <BillingPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="/" element={<Navigate to="/settings/billing" replace />} />
+            <Route path="*" element={<Navigate to="/settings/billing" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   )
 }

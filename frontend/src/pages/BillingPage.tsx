@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useAuth } from '@/context'
 import {
   AppShell,
   PageHeader,
@@ -63,6 +64,7 @@ const mockInvoices: BillingInvoice[] = [
 ]
 
 export const BillingPage: React.FC = () => {
+  const { user: currentUser, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('plans')
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [searchQuery, setSearchQuery] = useState('')
@@ -208,7 +210,20 @@ export const BillingPage: React.FC = () => {
   }
 
   return (
-    <AppShell>
+    <AppShell
+      user={
+        currentUser
+          ? {
+              email: currentUser.email,
+              name: currentUser.first_name
+                ? `${currentUser.first_name} ${currentUser.last_name || ''}`
+                : currentUser.email,
+              role: currentUser.role,
+            }
+          : undefined
+      }
+      onLogout={logout}
+    >
       {/* Top Header */}
       <PageHeader
         breadcrumb="Settings > Billing & Subscription"
