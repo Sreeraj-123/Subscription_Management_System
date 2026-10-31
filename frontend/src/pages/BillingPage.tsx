@@ -16,6 +16,7 @@ import {
 } from '@/components/shared'
 import { Eye, Download, CreditCard, AlertCircle } from 'lucide-react'
 import type { Invoice } from '@/types/billing'
+import type { Plan } from '@/types/catalog'
 
 interface BillingInvoice {
   id: string
@@ -27,45 +28,6 @@ interface BillingInvoice {
   issueDate: string
 }
 
-const mockInvoices: BillingInvoice[] = [
-  {
-    id: '1',
-    invoiceNumber: 'INV-2026-0041',
-    period: 'Oct 01, 2026 – Oct 31, 2026',
-    planName: 'Pro Annual License',
-    amount: '$490.00',
-    status: 'paid',
-    issueDate: 'Oct 01, 2026',
-  },
-  {
-    id: '2',
-    invoiceNumber: 'INV-2026-0038',
-    period: 'Sep 01, 2026 – Sep 30, 2026',
-    planName: 'Pro Monthly Plan',
-    amount: '$49.00',
-    status: 'paid',
-    issueDate: 'Sep 01, 2026',
-  },
-  {
-    id: '3',
-    invoiceNumber: 'INV-2026-0032',
-    period: 'Aug 01, 2026 – Aug 31, 2026',
-    planName: 'Pro Monthly Plan + Odoo Variant',
-    amount: '$609.00',
-    status: 'pending',
-    issueDate: 'Aug 01, 2026',
-  },
-  {
-    id: '4',
-    invoiceNumber: 'INV-2026-0027',
-    period: 'Jul 01, 2026 – Jul 31, 2026',
-    planName: 'Custom Add-on Seat (x5)',
-    amount: '$120.00',
-    status: 'overdue',
-    issueDate: 'Jul 01, 2026',
-  },
-]
-
 export const BillingPage: React.FC = () => {
   const { user: currentUser, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('plans')
@@ -75,10 +37,16 @@ export const BillingPage: React.FC = () => {
   const [selectedPlanForUpgrade, setSelectedPlanForUpgrade] = useState<string | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
 
-  // Query backend invoices
+  // Query real backend invoices
   const { data: realInvoicesData } = useQuery<{ results: Invoice[] }>({
     queryKey: ['invoices-list'],
     queryFn: () => api.get<{ results: Invoice[] }>('/billing/invoices/').catch(() => ({ results: [] })),
+  })
+
+  // Query real backend catalog plans
+  const { data: dbPlansData } = useQuery<{ results: Plan[] }>({
+    queryKey: ['catalog-plans-for-billing'],
+    queryFn: () => api.get<{ results: Plan[] }>('/catalog/plans/').catch(() => ({ results: [] })),
   })
 
   const realInvoices: BillingInvoice[] = (realInvoicesData?.results || []).map((inv) => ({
@@ -91,65 +59,45 @@ export const BillingPage: React.FC = () => {
     issueDate: inv.issue_date,
   }))
 
-  const displayInvoices = realInvoices.length > 0 ? realInvoices : mockInvoices
+  const displayInvoices = realInvoices
 
-  const plans: PlanData[] = [
-    {
-      id: 'plan_free',
-      name: 'Starter',
-      badgeText: 'Free',
-      badgeVariant: 'free',
-      price: '$0',
-      period: 'month',
-      description: 'Ideal for small startups experimenting with software subscriptions.',
-      isCurrent: true,
-      features: [
-        { text: '1 admin seat included', included: true },
-        { text: 'Up to 25 active subscriptions', included: true },
-        { text: 'Manual billing runs', included: true },
-        { text: 'Community support', included: true },
-        { text: 'Automated invoice generation', included: false },
-        { text: 'Custom quotation templates', included: false },
-      ],
-    },
-    {
-      id: 'plan_pro',
-      name: 'Professional',
-      badgeText: 'Pro',
-      badgeVariant: 'pro',
-      price: billingCycle === 'monthly' ? '$49' : '$39',
-      period: 'month',
-      description: 'Scale your SaaS with automated renewals, discount engines, and API access.',
-      isFeatured: true,
-      ctaLabel: 'Upgrade to Pro',
-      features: [
-        { text: 'Up to 10 staff seats', included: true },
-        { text: 'Unlimited active subscriptions', included: true },
-        { text: 'Automated billing runs & tax calculation', included: true },
-        { text: 'Real-time MRR/ARR analytics', included: true },
-        { text: 'Customer self-service portal', included: true },
-        { text: 'Priority email & chat support', included: true },
-      ],
-    },
-    {
-      id: 'plan_advance',
-      name: 'Advance Enterprise',
-      badgeText: 'Advance',
-      badgeVariant: 'advance',
-      price: billingCycle === 'monthly' ? '$199' : '$159',
-      period: 'month',
-      description: 'Dedicated infrastructure, customized quotation workflows, and 99.9% uptime SLA.',
-      ctaLabel: 'Contact Sales',
-      features: [
-        { text: 'Unlimited seats & RBAC roles', included: true },
-        { text: 'Multi-currency & custom tax engines', included: true },
-        { text: 'Dedicated account manager', included: true },
-        { text: 'Automated recurring bank debits & UPI', included: true },
-        { text: 'Custom contract terms & audit logs', included: true },
-        { text: '99.9% SLA & 24/7 phone escalation', included: true },
-      ],
-    },
-  ]
+  // Dynamically map real backend database plans
+  const dbPlans = dbPlansData?.results || []
+  const plans: PlanData[] = dbPlans.length > 0
+    ? dbPlans.map((plan) => {
+        const isFeatured = plan.name.toLowerCase().includes('pro')
+        const isFree = Number(plan.price) === 0
+        const priceDisplay = isFree
+          ? '$0'
+          : billingCycle === 'yearly' && plan.billing_period === 'MONTHLY'
+            ? `$${(Number(plan.price) * 0.8).toFixed(0)}`
+            : `$${Number(plan.price).toFixed(0)}`
+
+        return {
+          id: String(plan.id),
+          name: plan.name,
+          badgeText: isFree ? 'Free' : isFeatured ? 'Pro' : 'Enterprise',
+          badgeVariant: isFree ? 'free' : isFeatured ? 'pro' : 'advance',
+          price: priceDisplay,
+          period: plan.billing_period.toLowerCase(),
+          description: isFree
+            ? 'Ideal for small startups experimenting with software subscriptions.'
+            : isFeatured
+              ? 'Scale your SaaS with automated renewals, discount engines, and API access.'
+              : 'Dedicated enterprise infrastructure, custom quotation workflows, and 99.9% SLA.',
+          isFeatured,
+          ctaLabel: isFree ? 'Current Plan' : `Select ${plan.name}`,
+          features: [
+            { text: `${plan.min_quantity} min quantity seat(s)`, included: true },
+            { text: plan.pausable ? 'Pause subscription anytime' : 'Non-pausable license', included: plan.pausable },
+            { text: plan.renewable ? 'Auto-renewable billing cycle' : 'Fixed term license', included: plan.renewable },
+            { text: plan.closable_early ? 'Cancel anytime with prorated terms' : 'Full-term contract commitment', included: plan.closable_early },
+            { text: 'Automated invoice generation & tax calculation', included: !isFree },
+            { text: 'Full ReportLab PDF receipts & payment audit', included: true },
+          ],
+        }
+      })
+    : []
 
   const downloadInvoicePdf = (id: string, invoiceNumber: string) => {
     const token = api.getAccessToken()
